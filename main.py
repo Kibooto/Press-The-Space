@@ -1,4 +1,5 @@
 import pygame
+from pygame import mixer
 import sys
 import time
 import random
@@ -28,6 +29,13 @@ sr_image = pygame.image.load("assets/images/s_released.png").convert()
 sp_image = pygame.transform.scale(sp_image, (200, 50))
 sr_image = pygame.transform.scale(sr_image, (200, 50))
 
+music_volume = 0
+mixer.init()
+mixer.music.load("assets/music.mp3")
+mixer.music.set_volume(music_volume)
+mixer.music.play()
+pause = 0
+
 text_font = None
 font = pygame.font.Font(text_font, 36)
 
@@ -52,14 +60,13 @@ def mf_space_create(moneyImg, money, moneyX, moneyY, moneyV, moneyA, moneyG):
     money.append(moneyImg)
     moneyX.append(random.randint(100, 275))
     moneyY.append(475)
-    moneyV.append(random.uniform(10, 15))  # Випадкова швидкість
-    moneyA.append(random.uniform(60, 120))  # Випадковий кут у градусах
+    moneyV.append(random.uniform(10, 15))
+    moneyA.append(random.uniform(60, 120))
     moneyG.append(0.5)
 
 def mf_space_update(moneyX, moneyY, moneyV, moneyA, moneyG):
-    dt = 1 / 60  # Крок часу (60 кадрів в секунду)
+    dt = 1 / 60 
     for i in range(len(moneyX)):
-        # Оновлення координат монети
         moneyX[i] += moneyV[i] * math.cos(math.radians(moneyA[i])) * dt
         moneyY[i] -= moneyV[i] * math.sin(math.radians(moneyA[i])) * dt - 0.5 * moneyG[i] * dt**2
     if len(money) >= 1:
@@ -125,9 +132,23 @@ while running:
                 else:
                     state = "game"
 
-            if event.key == pygame.K_RETURN:
-                print("Game: Open store")
-                pass
+            if event.key == pygame.K_x:
+                if music_volume <= 1:
+                    music_volume += 0.1
+                mixer.music.set_volume(music_volume)
+
+            if event.key == pygame.K_z:
+                if music_volume >= 0:
+                    music_volume -= 0.1    
+                mixer.music.set_volume(music_volume)
+
+            if event.key == pygame.K_c:
+                if pause == 0:
+                    mixer.music.pause()
+                    pause = 1
+                else:
+                    mixer.music.unpause()
+                    pause = 0 
         
         if event.type == pygame.KEYUP:
             if event.key == pygame.K_SPACE:
@@ -140,10 +161,8 @@ while running:
         pps_text = font.render(f'PPS: {count_presses_in_last_6_seconds()}', True, (0, 0, 0))
         clock_text = time_draw()
 
-        # Оновлення монет
         mf_space_update(moneyX, moneyY, moneyV, moneyA, moneyG)
 
-        # Виведення монет на екран
         for i in range(len(money)):
             surface.blit(money[i], (moneyX[i], moneyY[i]))
 
@@ -159,5 +178,3 @@ while running:
         surface.blit(clock_text, (290, 10))
 
     pygame.display.flip()
-
-
